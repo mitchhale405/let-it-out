@@ -1,32 +1,29 @@
-// Simulating a simple user pool
-const users = ["User1", "User2", "User3", "User4", "User5"];
+// Initialize Firebase
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
 
 function startChat() {
   const chatButton = document.getElementById("chatButton");
   const chatContainer = document.getElementById("chatContainer");
   const messagesContainer = document.getElementById("messages");
-  const messageInput = document.getElementById("messageInput");
 
-  // Get a random user from the pool
-  const randomUser = getRandomUser();
-
-  // Display chat container and user info
+  // Display chat container
   chatContainer.style.display = "block";
   chatButton.style.display = "none";
 
-  messagesContainer.innerHTML = `<p>Connected with ${randomUser}</p>`;
-
-  // Simulate messages
-  const messages = [
-    `${randomUser}: Hi there!`,
-    'You: Hello!',
-    `${randomUser}: How are you?`,
-    'You: I am doing well, thanks!',
-  ];
-
-  // Display simulated messages
-  messages.forEach(message => {
-    messagesContainer.innerHTML += `<p>${message}</p>`;
+  // Listen for incoming messages
+  database.ref("messages").on("child_added", (snapshot) => {
+    const data = snapshot.val();
+    messagesContainer.innerHTML += `<p>${data.user}: ${data.message}</p>`;
   });
 }
 
@@ -36,12 +33,9 @@ function sendMessage() {
 
   const message = messageInput.value;
   if (message.trim() !== "") {
-    messagesContainer.innerHTML += `<p>You: ${message}</p>`;
+    // Send the message to Firebase
+    const newMessageRef = database.ref("messages").push();
+    newMessageRef.set({ user: "You", message });
     messageInput.value = "";
   }
-}
-
-function getRandomUser() {
-  const randomIndex = Math.floor(Math.random() * users.length);
-  return users[randomIndex];
 }
